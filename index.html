@@ -58,6 +58,10 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html { background: var(--bg); }
+/* nothing may push a card wider than the screen: grid/flex children can shrink, long words (file names) wrap */
+.tile > *, .backup > *, .preview > *, .log-layout > *, .bento > *, .ring-wrap > *, .stats > *, .cats > *, .mg-grid > *, .form > *, .row > *, .confirm > * { min-width: 0; }
+.cap, .preview h4, .preview ul, .muted, .empty, .ex-main b, .ex-main span, .cat-n, .leg .nm, .stat .d, .toast span, .banner span, .section-h span, .day-h span { overflow-wrap: anywhere; }
+.toast > span { min-width: 0; }
 body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 17px; line-height: 1.47; letter-spacing: -.011em; -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums; transition: background-color .4s ease, color .4s ease; }
 h1, h2, h3 { margin: 0; font-weight: 600; text-wrap: balance; letter-spacing: -.02em; }
 .muted { color: var(--fg2); }
@@ -126,6 +130,7 @@ button { font: inherit; color: inherit; }
 .stat .v { font-size: 2.1rem; font-weight: 600; line-height: 1.05; letter-spacing: -.03em; overflow-wrap: anywhere; }
 .stat .d { font-size: .84rem; color: var(--fg2); }
 .d.good { color: var(--good); } .d.warn { color: var(--warn); } .d.bad { color: var(--bad); }
+.section-h > * { min-width: 0; }
 .section-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 48px 4px 16px; }
 .section-h h2 { font-size: clamp(1.5rem, 3vw, 2rem); letter-spacing: -.03em; }
 
@@ -188,7 +193,7 @@ input[type="date"] { -webkit-appearance: none; appearance: none; display: block;
 .keys { display: flex; gap: 8px 18px; flex-wrap: wrap; font-size: .8rem; color: var(--fg2); margin: 0 0 14px; }
 .keys span { display: inline-flex; align-items: center; gap: 7px; }
 .keys i { display: inline-block; width: 16px; height: 2px; border-radius: 2px; }
-.tip { position: absolute; z-index: 5; pointer-events: none; background: var(--nav); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); border: 1px solid var(--hair); box-shadow: 0 8px 24px rgba(0,0,0,.14); border-radius: 12px; padding: 8px 12px; font-size: .8rem; line-height: 1.4; white-space: nowrap; transform: translate(-50%, calc(-100% - 12px)); }
+.tip { max-width: calc(100% - 8px); position: absolute; z-index: 5; pointer-events: none; background: var(--nav); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); border: 1px solid var(--hair); box-shadow: 0 8px 24px rgba(0,0,0,.14); border-radius: 12px; padding: 8px 12px; font-size: .8rem; line-height: 1.4; white-space: nowrap; transform: translate(-50%, calc(-100% - 12px)); }
 .tip b { font-weight: 600; }
 .tip .r { display: flex; align-items: center; gap: 6px; }
 .bento { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px; }
@@ -199,7 +204,8 @@ input[type="date"] { -webkit-appearance: none; appearance: none; display: block;
 /* log */
 .log-layout { display: grid; gap: 16px; max-width: 760px; margin: 0 auto; }
 .form { display: grid; gap: 16px; }
-.form-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.form-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.form-head .chip { white-space: normal; }
 .row { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 label.f, .f { display: grid; gap: 6px; font-size: .8rem; font-weight: 500; color: var(--fg2); min-width: 0; }
 .amt-in { font-size: 1.6rem !important; font-weight: 600; letter-spacing: -.02em; padding: 10px 14px !important; }
@@ -293,6 +299,9 @@ textarea { font: 400 .8rem ui-monospace, SFMono-Regular, Menlo, monospace; color
   .logo span { display: none; }
   .tab { padding: 6px 9px; }
 }
+/* small phones: the currency picker lives in Manage, so the top bar fits */
+@media (max-width: 430px) { .nav-r select { display: none; } }
+@media (max-width: 350px) { .logo { display: none; } .tab { padding: 6px 6px; font-size: .76rem; } }
 @media (max-width: 420px) {
   .cats { grid-template-columns: 1fr; }
   .stat .v { font-size: 1.6rem; } .stat { padding: 18px; }
@@ -451,6 +460,9 @@ button, input, select, textarea, label { -webkit-tap-highlight-color: transparen
     <div class="section-h"><h2>Paid by</h2><span class="muted" style="font-size:.9rem">The people you can pick when logging.</span></div>
     <div class="tile"><div class="tags" id="mgPayers"></div></div>
 
+    <div class="section-h"><h2>Currency</h2><span class="muted" style="font-size:.9rem">How amounts are shown. Nothing is converted.</span></div>
+    <div class="tile"><label class="f" style="max-width:240px">Show amounts in<select id="currency2"><option value="EUR">Euro (€)</option><option value="INR">Indian rupee (₹)</option><option value="USD">US dollar ($)</option><option value="GBP">British pound (£)</option></select></label></div>
+
     <div class="section-h"><h2>Backup</h2><span class="muted" style="font-size:.9rem">Keep a copy, or bring in older data.</span></div>
     <div class="tile backup">
       <div>
@@ -531,7 +543,7 @@ let todayISO=today.getFullYear()+"-"+pad(today.getMonth()+1)+"-"+pad(today.getDa
 let cur=new Date(today.getFullYear(),today.getMonth(),1);
 let months={}, sample=true, backend=null, db=null, filterCat="All", hiCat=null, lastAddedId=null;
 let currency="EUR";try{currency=localStorage.getItem("pl-currency")||"EUR"}catch(e){}
-$("currency").value=currency;
+$("currency").value=currency;$("currency2").value=currency;
 
 function fmt(v,dec){return new Intl.NumberFormat("en-IE",{style:"currency",currency,maximumFractionDigits:dec??2,minimumFractionDigits:dec??2}).format(v)}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
@@ -743,6 +755,11 @@ function drawCats(doc,by){
 
 // tooltip helper
 function tipIn(wrap){let t=wrap.querySelector(".tip");if(!t){t=document.createElement("div");t.className="tip";t.hidden=true;wrap.appendChild(t)}return t}
+function placeTip(tip,wrap,x,y){
+  tip.style.left=x+"px";tip.style.top=y+"px";tip.hidden=false;tip.style.whiteSpace="nowrap";
+  const w=tip.offsetWidth,W=wrap.clientWidth;if(w>W-8)tip.style.whiteSpace="normal";
+  const half=Math.min(tip.offsetWidth,W)/2;tip.style.left=Math.max(half+4,Math.min(W-half-4,x))+"px";
+}
 function svgPoint(svg,e){const r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal;return{x:(e.clientX-r.left)/r.width*vb.width,y:(e.clientY-r.top)/r.height*vb.height,sx:r.width/vb.width,sy:r.height/vb.height}}
 
 function drawPace(doc,budget,dim,dayNow){
@@ -773,7 +790,7 @@ function drawPace(doc,budget,dim,dayNow){
     xh.setAttribute("x1",X(d));xh.setAttribute("x2",X(d));xh.setAttribute("opacity",.5);dd.setAttribute("cx",X(d));dd.setAttribute("cy",Y(cum[d]));dd.setAttribute("opacity",1);
     const date=new Date(cur.getFullYear(),cur.getMonth(),d).toLocaleDateString("en-GB",{day:"numeric",month:"short"});
     tip.innerHTML=`<b>${date}</b><br>${fmt(cum[d],0)} so far · pace ${fmt(budget*d/dim,0)}${daily[d]?`<br>${fmt(daily[d],0)} that day`:""}`;
-    tip.style.left=X(d)*p.sx+"px";tip.style.top=Y(cum[d])*p.sy+"px";tip.hidden=false;
+    placeTip(tip,$("paceWrap"),X(d)*p.sx,Y(cum[d])*p.sy);
   };
   const out=()=>{tip.hidden=true;xh.setAttribute("opacity",0);dd.setAttribute("opacity",0)};
   hit.addEventListener("pointermove",move);hit.addEventListener("pointerdown",move);hit.addEventListener("pointerleave",out);
@@ -806,7 +823,7 @@ function drawTrend(){
     const show=e=>{const p=svgPoint(svg,e);const i=data.indexOf(d);const cx=L+bw*i+bw/2;
       const tops=Object.keys(d.by).sort((a,b)=>d.by[b]-d.by[a]).slice(0,3);
       tip.innerHTML=`<b>${monthName(d.k)}</b><br>${fmt(d.t,0)}${d.b!=null?` of ${fmt(d.b,0)}`:""}`+tops.map(n=>`<div class="r"><i class="dot" style="width:8px;height:8px;background:${colOf(n,d.d)}"></i>${esc(n)} ${fmt(d.by[n],0)}</div>`).join("");
-      tip.style.left=cx*p.sx+"px";tip.style.top=Y(d.t||0)*p.sy+"px";tip.hidden=false};
+      placeTip(tip,$("trendWrap"),cx*p.sx,Y(d.t||0)*p.sy)};
     g.addEventListener("pointermove",show);g.addEventListener("pointerleave",()=>tip.hidden=true);
     g.addEventListener("click",()=>{tip.hidden=true;cur=new Date(+d.k.slice(0,4),+d.k.slice(5)-1,1);render()});
   });
@@ -899,7 +916,7 @@ function drawList(doc){
 document.querySelectorAll(".prev").forEach(b=>b.onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()-1,1);hiCat=null;render()});
 document.querySelectorAll(".next").forEach(b=>b.onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);hiCat=null;render()});
 document.querySelectorAll(".monthLabel").forEach(b=>b.onclick=()=>{cur=new Date(today.getFullYear(),today.getMonth(),1);hiCat=null;render()});
-$("currency").onchange=e=>{currency=e.target.value;try{localStorage.setItem("pl-currency",currency)}catch(_){}render()};
+$("currency").onchange=$("currency2").onchange=e=>{currency=e.target.value;$("currency").value=$("currency2").value=currency;try{localStorage.setItem("pl-currency",currency)}catch(_){}render()};
 $("budgetForm").addEventListener("submit",e=>{e.preventDefault();const v=parseAmount($("budget").value);if(v>=0){mutate(d=>d.budget=v);toast("Budget set to "+fmt(v,0))}});
 $("cats").addEventListener("change",e=>{const t=e.target;if(t.dataset.cat){const v=parseAmount(t.value)||0;editFrom(keyOf(cur),d=>d.cats[t.dataset.cat]=v);toast(`${t.dataset.cat} limit set to ${fmt(v,0)} from ${monthName(keyOf(cur),{month:"long"})} on`)}});
 $("filter").addEventListener("click",e=>{const b=e.target.closest("[data-f]");if(b){filterCat=b.dataset.f;drawList(months[keyOf(cur)])}});
@@ -1133,8 +1150,30 @@ function planFrom(name,text){
     if(!Object.keys(plan.meta).length)throw new Error("No months found in this file. Choose a Pocket Ledger backup or a CSV.");
     return plan;
   }
+  const rows=parseCSV(text);if(rows.length<2)throw new Error("The file needs a header row and at least one row of data.");
+  // one row per category, one column per month (e.g. Property, January … December, Budget)
+  const hm=rows[0].map(headerMonth);
+  if(hm.filter(Boolean).length>=2){
+    plan.kind="wide";
+    const norm=rows[0].map(x=>x.toLowerCase().replace(/^\uFEFF/,"").trim());
+    const bi=norm.findIndex((x,j)=>!hm[j]&&/^(budget|limit|monthly budget|monthly limit|budget per month|limits?)$/.test(x));
+    let ci=norm.findIndex((x,j)=>!hm[j]&&j!==bi&&["property","name","category","categories","kategorie","cat","item","type","title"].includes(x));
+    if(ci<0)ci=rows[0].findIndex((x,j)=>!hm[j]&&j!==bi);
+    if(ci<0)throw new Error("Couldn't find the column with category names.");
+    plan.wide={rows:[],hasYears:hm.some(x=>x&&x.y)};
+    rows.slice(1).forEach((r,i)=>{
+      if(!clean(r[ci])){if(r.some(x=>clean(x)))plan.skipped.push(`line ${i+2}: no category name`);return}
+      const cat=canon(r[ci]),cells=[];
+      hm.forEach((x,j)=>{if(!x)return;const a=parseAmount(r[j]);if(a>0)cells.push({m:x.m,y:x.y,amt:Math.round(a*100)/100})});
+      const b=bi>-1?parseAmount(r[bi]):NaN;plan.wide.rows.push({cat,budget:b>=0?Math.round(b*100)/100:null,cells});
+    });
+    plan.year=today.getFullYear();
+    plan.columns=[`${rows[0][ci].trim()} → Category`,`${hm.filter(Boolean).length} month columns → monthly totals`,...(bi>-1?[`${rows[0][bi].trim()} → Category limit`]:[])];
+    applyWide(plan);
+    if(!plan.wide.rows.length)throw new Error("No categories found in this file.");
+    return plan;
+  }
   plan.kind="csv";
-  const rows=parseCSV(text);if(rows.length<2)throw new Error("The file needs a header row and at least one expense.");
   const idx=mapHeader(rows[0]);
   if(idx.amt==null)throw new Error("Couldn't find an Amount column. Name one of the columns Amount.");
   if(idx.date==null&&idx.month==null)throw new Error("Couldn't find a Date or Month column.");
@@ -1151,6 +1190,24 @@ function planFrom(name,text){
   });
   if(!plan.expenses.length)throw new Error("No rows could be read. Check that the Date and Amount columns have values.");
   return plan;
+}
+const MONTH_WORDS={january:1,february:2,march:3,april:4,may:5,june:6,july:7,august:8,september:9,october:10,november:11,december:12,
+  januar:1,februar:2,"märz":3,maerz:3,mai:5,juni:6,juli:7,oktober:10,dezember:12,jan:1,feb:2,mar:3,"mär":3,apr:4,jun:6,jul:7,aug:8,sep:9,sept:9,oct:10,okt:10,nov:11,dec:12,dez:12};
+function headerMonth(h){
+  const m=String(h||"").replace(/^\uFEFF/,"").trim().toLowerCase().match(/^([a-zä]+)\.?[\s\-\/']*(\d{2,4})?$/);
+  if(!m||!MONTH_WORDS[m[1]])return null;let y=m[2]?+m[2]:null;if(y!=null&&y<100)y+=2000;return{m:MONTH_WORDS[m[1]],y};
+}
+function applyWide(plan){
+  plan.expenses=[];plan.meta={};
+  const slug=c=>c.toLowerCase().replace(/[^a-z0-9äöüß]+/g,"-").replace(/^-|-$/g,"")||"other";
+  const limits={};plan.wide.rows.forEach(r=>{if(r.budget!=null)limits[r.cat]=r.budget});
+  const sumLimits=Object.keys(limits).length?Math.round(Object.values(limits).reduce((a,b)=>a+b,0)*100)/100:null;
+  plan.wide.rows.forEach(r=>r.cells.forEach(c=>{
+    const date=lastDay(c.y||plan.year,c.m),k=date.slice(0,7);
+    // same id scheme as earlier monthly-total imports, so re-importing the same file skips what's already there
+    plan.expenses.push({id:`notion-${k}-${slug(r.cat)}`,date,cat:r.cat,amt:c.amt,note:"Monthly total · Notion"});
+    if(!plan.meta[k])plan.meta[k]={budget:sumLimits,cats:{...limits}};
+  }));
 }
 const sigOf=e=>[e.date,Math.round(e.amt*100),e.cat.toLowerCase(),(e.note||"").toLowerCase()].join("|");
 function buildImport(plan,mode){
@@ -1175,7 +1232,9 @@ let plan=null,importMode="merge",armTimer=0;
 function drawPreview(){
   const box=$("bkPreview");if(!plan){box.innerHTML="";return}
   const r=buildImport(plan,importMode),span=r.ks.length?`${monthName(r.ks[0],{month:"short",year:"numeric"})} to ${monthName(r.ks[r.ks.length-1],{month:"short",year:"numeric"})}`:"";
-  box.innerHTML=`<div class="preview"><h4>${plan.expenses.length} expense${plan.expenses.length===1?"":"s"} found in ${esc(plan.name)}</h4>
+  const what=plan.kind==="wide"?(plan.expenses.length===1?"monthly total":"monthly totals"):(plan.expenses.length===1?"expense":"expenses");
+  const yearPick=plan.kind==="wide"&&!plan.wide.hasYears?`<label class="f" style="max-width:200px">The months in this file are from<select id="impYear">${[0,1,2,3,4].map(i=>today.getFullYear()-i).map(y=>`<option${y===plan.year?" selected":""}>${y}</option>`).join("")}</select></label>`:"";
+  box.innerHTML=`<div class="preview"><h4>${plan.expenses.length} ${what} found in ${esc(plan.name)}</h4>${yearPick}
     <ul><li><b>${span}</b> · ${r.ks.length} month${r.ks.length===1?"":"s"} · ${fmt(r.total,0)}</li>
     ${plan.columns?`<li>Columns read: ${plan.columns.map(esc).join(", ")}</li>`:""}
     ${r.newCats.length?`<li>New categories, added with no limit: <b>${r.newCats.map(esc).join(", ")}</b></li>`:""}
@@ -1199,7 +1258,10 @@ const drop=$("drop");
 ["dragenter","dragover"].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add("over")}));
 ["dragleave","drop"].forEach(t=>drop.addEventListener(t,()=>drop.classList.remove("over")));
 drop.addEventListener("drop",e=>{e.preventDefault();readFile(e.dataTransfer&&e.dataTransfer.files[0])});
-$("bkPreview").addEventListener("change",e=>{if(e.target.name==="impMode"){importMode=e.target.value;drawPreview()}});
+$("bkPreview").addEventListener("change",e=>{
+  if(e.target.name==="impMode"){importMode=e.target.value;drawPreview()}
+  else if(e.target.id==="impYear"&&plan&&plan.wide){plan.year=+e.target.value;applyWide(plan);drawPreview()}
+});
 $("bkPreview").addEventListener("click",e=>{
   if(e.target.id==="impCancel"){plan=null;drawPreview();return}
   if(e.target.id!=="impGo"||!plan)return;

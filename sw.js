@@ -1,6 +1,6 @@
 // Pocket Ledger service worker: keeps the app usable offline.
 // build.py bumps VERSION on every build so phones pick up the new version.
-const VERSION = "pocket-ledger-v3";
+const VERSION = "pocket-ledger-v5";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png", "./icons/favicon.svg"];
 
 self.addEventListener("install", e => {
