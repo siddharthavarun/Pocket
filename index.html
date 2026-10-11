@@ -91,7 +91,7 @@ button { font: inherit; color: inherit; }
 .theme-toggle[aria-pressed="true"] .sun { display: block; }
 .theme-toggle[aria-pressed="true"] .moon { display: none; }
 
-.banner { max-width: 1024px; margin: 16px auto 0; padding-inline: 16px; text-align: center; font-size: .86rem; color: var(--fg2); }
+.banner { max-width: 1024px; margin: 16px auto 0; padding-inline: 16px; text-align: center; font-size: .9rem; color: var(--fg2); display: grid; gap: 10px; justify-items: center; }
 
 /* page */
 .page { max-width: 1024px; margin: 0 auto; padding-inline: 16px; padding-block: 0 96px; overflow-x: clip; }
@@ -337,7 +337,7 @@ button, input, select, textarea, label { -webkit-tap-highlight-color: transparen
   </div>
 </nav>
 
-<div class="banner" id="sampleBanner">Showing sample data. Log an expense, or import a backup in Manage, to start your own ledger.</div>
+<div class="banner" id="sampleBanner"><span>You're looking at sample data.</span><span class="btn-row" style="justify-content:center"><button type="button" class="btn primary" id="startFresh">Start a new ledger</button><button type="button" class="btn" id="startImport">Import a backup</button></span></div>
 
 <div class="page">
   <!-- OVERVIEW -->
@@ -1222,6 +1222,15 @@ $("bkPreview").addEventListener("click",e=>{
     render();
   });
 });
+
+// ---- leave the sample data
+$("startFresh").onclick=()=>{
+  if(!sample)return;months={};sample=false;$("sampleBanner").hidden=true;
+  const k=keyOf(today);months[k]=blank();cur=new Date(today.getFullYear(),today.getMonth(),1);
+  render();persist(k);showTab("manage");
+  toast("New ledger started. Set your budget and categories here.");
+};
+$("startImport").onclick=()=>{showTab("manage");setTimeout(()=>$("drop").scrollIntoView({behavior:reduce?"auto":"smooth",block:"center"}),300)};
 
 // ---- keep "today" right when the app stays open overnight
 function refreshToday(){
